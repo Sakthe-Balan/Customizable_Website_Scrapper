@@ -40,7 +40,7 @@ for i in range(1, 665):
     for link in soup2.find_all('a', attrs={'class': 'color-charcoal course-name'}):
         link_url = link['href']
         link_url = 'https://www.classcentral.com' + link_url
-        print(link_url)
+        print(link_url,i)
 
         # Send a GET request to the link and parse the HTML content using BeautifulSoup
         while True:
@@ -49,18 +49,44 @@ for i in range(1, 665):
                 link_soup1 = BeautifulSoup(link_page.content, 'html.parser')
                 link_soup2 = BeautifulSoup(link_soup1.prettify(), 'html.parser')
                 time.sleep(2)
+               
 
                 # Scrape the data inside the link using BeautifulSoup
-                Image = link_soup2.find('img', attrs={'class': 'absolute'}).get('src').strip()
-                title = link_soup2.find('h1', attrs={'class': 'head-2'}).get_text().strip()
-                Overview = link_soup2.find('div', attrs={'class': 'wysiwyg'}).get_text().strip()
-                div = link_soup2.find('div', attrs={'class': 'course-noncollapsable-section'})
-                p = div.find('p', attrs={'class': 'text-1'})
-                taught_by = p.get_text().strip()
-                Link = link_soup2.find('a', attrs={'class': 'btn-blue btn-medium width-100 padding-horz-xlarge'}).get(
-                    'href').strip()
-                Link = 'https://www.classcentral.com' + str(Link)
-                rating = link_soup2.find('span', attrs={'class': 'color-gray margin-top-xxsmall'}).get_text().strip()
+                try:
+                    Image = link_soup2.find('img', attrs={'class': 'absolute'}).get('src').strip()
+                except AttributeError:
+                    print("Image not available. Retrying in 3 seconds...")
+                    time.sleep(3)
+                    continue
+                try:
+                    title = link_soup2.find('h1', attrs={'class': 'head-2'}).get_text().strip()
+                except AttributeError:
+                    print("Title not available. Retrying in 3 seconds...")
+                    time.sleep(3)
+                    continue
+                try:
+                    Overview = link_soup2.find('div', attrs={'class': 'wysiwyg'}).get_text().strip()
+                except AttributeError:
+                    print("Overview not available. Retrying in 3 seconds...")
+                    time.sleep(3)
+                    continue
+                try:
+                    div = link_soup2.find('div', attrs={'class': 'course-noncollapsable-section'})
+                    p = div.find('p', attrs={'class': 'text-1'})
+                    taught_by = p.get_text().strip()
+                    Link = link_soup2.find('a', attrs={'class': 'btn-blue btn-medium width-100 padding-horz-xlarge'}).get(
+                        'href').strip()
+                    Link = 'https://www.classcentral.com' + str(Link)
+                except AttributeError:
+                    print("Link not available. Retrying in 3 seconds...")
+                    time.sleep(3)
+                    continue
+                try:  
+                    rating = link_soup2.find('span', attrs={'class': 'color-gray margin-top-xxsmall'}).get_text().strip()
+                except ArithmeticError:
+                    print("rating not available. Retrying in 3 seconds...")
+                    time.sleep(3)
+                    continue
 
                 # Write the data to the CSV file
                 with open(filename, 'a+', newline='', encoding='UTF8') as f:
@@ -68,5 +94,5 @@ for i in range(1, 665):
                     writer.writerow([title, Image, Overview, taught_by, Link, rating])
                 break
             except AttributeError:
-                     print("Data not available. Retrying in 3 seconds...")
-                     time.sleep(3)
+                     print("Data not available. Retrying in 5 seconds...")
+                     time.sleep(2)
