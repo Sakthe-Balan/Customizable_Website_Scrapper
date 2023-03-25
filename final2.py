@@ -2,27 +2,44 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import time
+filename = 'Course_Info.csv'
+fields = ['title', 'Image', 'Overview', 'taught_by', 'Link', 'rating']
 
-for i in range(29,665):
+with open(filename, 'w', newline='', encoding='UTF8') as f:
+    writer = csv.writer(f)
+    writer.writerow(fields)
+
+for i in range(1, 665):
     # Define the URL of the webpage containing the links to be scraped
-    url = 'https://www.classcentral.com/provider/udemy?page='+str(i)
+    url = 'https://www.classcentral.com/provider/udemy?page=' + str(i)
 
     # Define the headers to be used for making requests to the website
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36", "Accept-Encoding":"gzip, deflate", "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "DNT":"1","Connection":"close", "Upgrade-Insecure-Requests":"1"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "DNT": "1", "Connection": "close",
+        "Upgrade-Insecure-Requests": "1"}
 
     # Send a GET request to the website and parse the HTML content using BeautifulSoup
-    page = requests.get(url, headers=headers)
+    while True:
+        try:
+            page = requests.get(url, headers=headers)
+            break
+        except requests.exceptions.ChunkedEncodingError:
+            print("Connection broken. Retrying in 5 seconds...")
+            time.sleep(5)
+
     soup1 = BeautifulSoup(page.content, 'html.parser')
     soup2 = BeautifulSoup(soup1.prettify(), 'html.parser')
 
     # Define the CSV file and attributes
-    filename = 'Course_Info(part5).csv'
-    fields = ['title','Image','Overview','taught_by',]
+    
 
     # Loop through all the links in the webpage and scrape the data inside each of them
     for link in soup2.find_all('a', attrs={'class': 'color-charcoal course-name'}):
         link_url = link['href']
-        link_url ='https://www.classcentral.com'+link_url
+        link_url = 'https://www.classcentral.com' + link_url
         print(link_url)
 
         # Send a GET request to the link and parse the HTML content using BeautifulSoup
@@ -34,16 +51,22 @@ for i in range(29,665):
                 time.sleep(2)
 
                 # Scrape the data inside the link using BeautifulSoup
-                Image = link_soup2.find('img',attrs={'class':'absolute'}).get('src').strip()
-                title = link_soup2.find('h1',attrs={'class':'head-2'}).get_text().strip()
-                Overview = link_soup2.find('div',attrs={'class':'wysiwyg'}).get_text().strip()
-                taught_by = link_soup2.find('p',attrs={'class':'text-1'}).get_text().strip()
+                Image = link_soup2.find('img', attrs={'class': 'absolute'}).get('src').strip()
+                title = link_soup2.find('h1', attrs={'class': 'head-2'}).get_text().strip()
+                Overview = link_soup2.find('div', attrs={'class': 'wysiwyg'}).get_text().strip()
+                div = link_soup2.find('div', attrs={'class': 'course-noncollapsable-section'})
+                p = div.find('p', attrs={'class': 'text-1'})
+                taught_by = p.get_text().strip()
+                Link = link_soup2.find('a', attrs={'class': 'btn-blue btn-medium width-100 padding-horz-xlarge'}).get(
+                    'href').strip()
+                Link = 'https://www.classcentral.com' + str(Link)
+                rating = link_soup2.find('span', attrs={'class': 'color-gray margin-top-xxsmall'}).get_text().strip()
 
                 # Write the data to the CSV file
                 with open(filename, 'a+', newline='', encoding='UTF8') as f:
                     writer = csv.writer(f)
-                    writer.writerow([title,Image,Overview,taught_by])
+                    writer.writerow([title, Image, Overview, taught_by, Link, rating])
                 break
             except AttributeError:
-                print("Data not available. Retrying in 5 seconds...")
-                time.sleep(5)
+                     print("Data not available. Retrying in 3 seconds...")
+                     time.sleep(3)
