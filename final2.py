@@ -6,7 +6,7 @@ from requests.exceptions import RequestException
 from urllib3.exceptions import ProtocolError
 
 
-filename = 'Course_Info.csv'
+filename = 'Course_Info(Final).csv'
 fields = ['title', 'Image', 'Overview', 'taught_by', 'Link', 'rating']
     
 with open(filename, 'w', newline='', encoding='UTF8') as f:
