@@ -6,16 +6,18 @@ from requests.exceptions import RequestException, ChunkedEncodingError
 from urllib3.exceptions import ProtocolError
 import re
 
-filename = 'Course_Info(Final-1).csv'
+filename = 'Course_Info(Final).csv'
 fields = ['title','type', 'Provider', 'taught_by', 'Link', 'url', 'side_card', 'overview', 'ratings', 'no_of_ratings']
 
 with open(filename, 'w', newline='', encoding='UTF8') as f:
     writer = csv.writer(f)
     writer.writerow(fields)
-
-for i in range(1, 661):
+c=int(input("enter the initial page to start from: "))
+a=int(input("enter number of pages to be scraped : "))
+b=input("enter teh link query to extract EX:/provider/udemy: ")
+for i in range(c,c+a):
     # Define the URL of the webpage containing the links to be scraped
-    url = 'https://www.classcentral.com/institution/smithsonian?page=' + str(i)
+    url = 'https://www.classcentral.com'+b+'?page=' + str(i)
 
     # Define the headers to be used for making requests to the website
     headers = {
@@ -53,7 +55,7 @@ for i in range(1, 661):
                 link_page = requests.get(link_url, headers=headers)
                 link_soup1 = BeautifulSoup(link_page.content, 'html.parser')
                 link_soup2 = BeautifulSoup(link_soup1.prettify(), 'html.parser')
-                time.sleep(2)
+                time.sleep(3)
 
                 # Scrape the data inside the link using BeautifulSoup
                 try:
@@ -130,7 +132,7 @@ for i in range(1, 661):
                     url = a_element['href']
                 except AttributeError:
                     print("URL not available. Leaving it blank and continuing...")
-                    url = ''
+                    url = 'b'
 
                 try:
                     li_list = link_soup2.find_all('li', class_='course-details-item border-gray-light')
